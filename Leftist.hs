@@ -53,12 +53,6 @@ deletemin :: Ord a => Heap a -> Maybe (a, Heap a)
 deletemin Empty = Nothing
 deletemin (h @ Heap { }) = Just (val h, merge (left h) (right h))
 
--- | Three heaps; we know which one has the smallest S-value
-data Heaps3 a = H3 { smallest :: Heap a
-                   , larger1  :: Heap a
-                   , larger2  :: Heap a
-                   }
-
 merge :: Ord a => Heap a -> Heap a -> Heap a
 merge Empty h = h
 merge h Empty = h
@@ -66,12 +60,24 @@ merge h1 h2
   | val h1 > val h2 = merge h2 h1
   | otherwise       = -- h1 has the smaller root
       Heap { val = val h1
-           , left = merge (larger1 three) (larger2 three)
-           , right = smallest three
-           , s = succ (svalue (smallest three))
+           , left = higher_rank
+           , right = lower_rank
+           , s = succ (svalue lower_rank)
            }
-        where three = heaps3 (left h1) (right h1) h2
-              
+        where one     = left h1
+              another = merge (right h1) h2
+              (higher_rank, lower_rank) =
+                if svalue one > svalue another then (one, another)
+                                               else (another, one)
+{-              
+-- | Three heaps; we know which one has the smallest S-value
+data Heaps3 a = H3 { smallest :: Heap a
+                   , larger1  :: Heap a
+                   , larger2  :: Heap a
+                   }
+
+
+
 heaps3 :: Heap a -> Heap a -> Heap a -> Heaps3 a
 heaps3 h1 h2 h3 =
   if svalue h1 < svalue h2 then
@@ -84,7 +90,7 @@ heaps3 h1 h2 h3 =
       H3 h2 h1 h3
     else
       H3 h3 h1 h2
-      
+-}
 -----------------------------------------------------------------
 
 heapsort :: Ord a => [a] -> [a]
@@ -102,7 +108,8 @@ sortWorks ns = heapsort ns == sort ns
 
 
 instance (Ord a, Arbitrary a) => Arbitrary (Heap a) where
-  arbitrary = liftM (foldr insert Empty) arbitrary
+  arbitrary = liftM (foldr insert Empty)
+                 (sized $ \n -> sequence (replicate n arbitrary))
   coarbitrary = error "never"
 
 ------------------------------
@@ -126,3 +133,41 @@ degenerate Empty = True
 degenerate Heap { right = Empty } = True
 degenerate Heap { right = Heap { left = Empty, right = Empty } } = True
 degenerate _ = False
+
+
+seven, myheap :: Heap Int
+
+seven = Heap { left = Empty, s = 1, val = 7, right = Empty }
+
+myheap = Heap { left  = Heap { left = seven, right = seven, s = 2, val = 5 }
+              , right = Heap { left = seven, right = seven, s = 2, val = 6 }
+              , s = 3
+              , val = 0
+              }
+         
+
+
+spindly :: Heap a -> Bool
+spindly h = population h <= 2 * depth h
+
+depth, population :: Heap a -> Int
+depth Empty = 0
+depth h = 1 + max (depth (left h)) (depth (right h))
+
+population Empty = 0
+population h = 1 + population (left h) + population (right h)
+
+
+
+--------
+
+tarjan :: Heap a -> Bool   -- the right path is at most log n
+tarjan h = isEmpty h || (population h `reduced` rightPath h) >= 1
+
+rightPath :: Heap a -> Int
+rightPath Empty = -1
+rightPath h = 1 + rightPath (right h)
+
+reduced :: Int -> Int -> Int
+reduced pop 0 = pop
+reduced pop n = reduced (pop `div` 2) (pred n)
