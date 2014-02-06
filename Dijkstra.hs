@@ -4,8 +4,10 @@ where
   -- shortest paths using Dijkstra's algorithm
 
 import Data.Function
-import Data.Map hiding (deleteMin)
+import Data.Map hiding (deleteMin, foldl)
+import Data.Maybe
 import Leftist hiding (insert)
+import Prelude hiding (lookup)
 import qualified Leftist
 
 insertHeap :: Ord a => a -> Heap a -> Heap a
@@ -65,8 +67,21 @@ solve adj start = steps (insert start Start empty) neighborsOfStartNode
                steps solution u'
              else
                steps (insert v (Known v delta parent) solution)
-                     (addNeighbors delta v u')
-       addNeighbors :: Double -> Vertex -> Unknowns -> Unknowns
-       addNeighbors = error "unimplemented"
+                     (addNeighbors (Known v delta parent) v u')
+       addNeighbors :: KnownData -> Vertex -> Unknowns -> Unknowns
+       addNeighbors parent me unknowns =
+         foldl add unknowns (fromJust $ lookup me adj)
+         where add unknowns v =
+                 insertHeap
+                 (Unknown v (dist parent + (gpsDistance `on` pos) me v) parent)
+                 unknowns
+                                        
+       neighborsOfStartNode = addNeighbors Start start emptyHeap
 
-       neighborsOfStartNode = addNeighbors 0.0 start emptyHeap
+       dist :: KnownData -> Double
+       dist Start = 0.0
+       dist (Known { distance = d }) = d
+
+
+gpsDistance :: GPS -> GPS -> Double
+gpsDistance = error "some number of meters"
