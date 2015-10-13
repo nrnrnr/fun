@@ -1,15 +1,32 @@
 module Squarified
 where
 
+import Debug.Trace
 import Data.List
+import Text.Printf
 
 data Axis = X | Y
+  deriving Show
 
 type Position = Double
 type Area = Double
 
 data Tree = Split Axis Position Tree Tree
           | Leaf Rectangle 
+
+instance Show Tree where
+    show = showTree "" 0 0
+
+showTree pfx x y (Leaf r) = pfx ++ show r ++ "\n"
+showTree pfx x y (Split X pos t1 t2) =
+    pfx ++ "x @ " ++ show (x + twidth t1) ++ "   [y = " ++ show y ++ "]\n" ++
+        showTree (pfx ++ "  ") x y t1 ++
+        showTree (pfx ++ "  ") (x+twidth t1) y t2
+showTree pfx x y (Split Y pos t1 t2) =
+    pfx ++ "y @ " ++ show (y + theight t1) ++ "   [x = " ++ show x ++ "]\n" ++
+        showTree (pfx ++ "  ") x y t1 ++
+        showTree (pfx ++ "  ") x (y+theight t1) t2
+
 
 twidth :: Tree -> Double
 twidth (Leaf r) = dx r
@@ -43,7 +60,8 @@ test = layout . squarify
 data Rectangle = Rectangle { dx, dy :: Double }
 
 fill :: Rectangle -> [Area] -> Tree
-try space (prefix, suffix) = Trial (squareness lastr) tree
+try space (prefix, suffix) = trace ("trying " ++ show space ++ "\n") $
+                             Trial (squareness lastr) tree
     where
       tree = Split (short_side space) undefined (fill rectangle1 prefix)
                                                 (fill leftover suffix)
@@ -59,8 +77,10 @@ fill space [area] =
 fill space areas = greedy $ map (try space) (splits areas)
   where greedy [] = error "this can't happen -- never made a trial"
         greedy [t] = tree t
-        greedy (t1:t2:ts) = if quality t2 > quality t1 then greedy (t2:ts)
-                            else tree t1
+        greedy (t1:t2:ts) =
+--            trace ("quality " ++ show (quality t1) ++ " vs " ++ show (quality t2)) $
+            if quality t2 > quality t1 then greedy (t2:ts)
+            else tree t1
 
 -- this version doesn't rely on lazy evaluation
 find_strict space (split:splits) = greedy (try space split) splits
@@ -75,6 +95,10 @@ find_strict space (split:splits) = greedy (try space split) splits
 
 
 data Trial = Trial { quality :: Double, tree :: Tree }
+instance Show Trial where
+  show t = "Q" ++ printf "%.2f" (quality t) ++ " " ++
+           show (layoutAt (tree t) (Point 0 0)) ++ "\n" ++
+           show (tree t)
 
 
 
