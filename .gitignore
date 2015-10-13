@@ -1,0 +1,6 @@
+/squarified-tree-map/Setup.hs
+/squarified-tree-map/dist
+*.aux
+*.dvi
+*.log
+*.pdf
