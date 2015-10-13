@@ -112,11 +112,11 @@ squareness rect = if dx rect < dy rect then dx rect / dy rect
                   else dy rect / dx rect
 
 place_in :: Axis -> Area -> Space -> (Rectangle, Space)
-place_in X area space = ( Rectangle rwidth (dy space)
+place_in Y area space = ( Rectangle rwidth (dy space)
                         , Rectangle (dx space - rwidth) (dy space)
                         )
    where rwidth = area / dy space
-place_in Y area space = ( Rectangle (dx space) rheight
+place_in X area space = ( Rectangle (dx space) rheight
                         , Rectangle (dx space) (dy space - rheight)
                         )
    where rheight = area / dx space
