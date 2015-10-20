@@ -59,17 +59,18 @@ test = layout . squarify
 
 data Rectangle = Rectangle { dx, dy :: Double }
 
-fill :: Rectangle -> [Area] -> Tree
+try :: Rectangle -> ([Area], [Area]) -> Trial
 try space (prefix, suffix) = trace ("trying " ++ show space ++ "\n") $
                              Trial (squareness lastr) tree
     where
-      tree = Split (short_side space) undefined (fill rectangle1 prefix)
+      tree = Split (long_side space) undefined (fill rectangle1 prefix)
                                                 (fill leftover suffix)
       -- try placing prefix on the short side
       (rectangle1, leftover) = place_in (short_side space) (sum prefix) space
       -- how good was the last area in the prefix?
       (lastr, _) = place_in (short_side space) (last prefix) rectangle1
 
+fill :: Rectangle -> [Area] -> Tree
 fill _ [] = error $ "there were no areas"
 fill space [area] = 
     if dx space * dy space =~= area then Leaf space
@@ -124,6 +125,8 @@ place_in X area space = ( Rectangle (dx space) rheight
 short_side :: Rectangle -> Axis
 short_side r = if dx r < dy r then X else Y
          
+long_side :: Rectangle -> Axis
+long_side r = if dx r < dy r then Y else X
   
 
 
