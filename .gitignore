@@ -6,3 +6,6 @@
 *.pdf
 *.stack*
 stack.yaml
+*~
+/squarified-tree-map/remco.tex
+/squarified-tree-map/test.tex
