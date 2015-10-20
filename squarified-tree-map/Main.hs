@@ -4,6 +4,7 @@ where
 import Data.Colour
 import Data.Colour.Names
 import System.Environment
+import Text.Printf
 
 import Squarified
 import Tikz
@@ -29,6 +30,7 @@ main = do -- putStrLn $ show spectrum
           putStrLn "\\documentclass{article}"
           putStrLn "\\usepackage{tikz}"
           putStrLn "\\begin{document}"
+          putStrLn "\\tikzset{x=0.007in,y=0.007in}"
           putStrLn "\\begin{center}"
           mapM_ (putStrLn . renderTrial spectrum) (trials $ problem args)
           putStrLn "\\end{center}"
@@ -43,5 +45,7 @@ main = do -- putStrLn $ show spectrum
                           }
           problem _ = error $ "Usage: $0 width height area ..."
 
-          renderTrial sp t = render sp (tree t) ++ "\n\nQuality " ++ show (quality t) ++
-                         "\n\n\\bigskip\n\n"
+          renderTrial sp t = 
+             printf "%s\n\\mbox{\\vrule width 0pt height 20pt Quality %.4f}\n\n\\bigskip\\bigskip\n\n" 
+                        (render sp (tree t)) 
+                        (quality t)
