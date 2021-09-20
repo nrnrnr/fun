@@ -24,7 +24,7 @@ type Way = [Uid] -- representation from Open Street Map
 data InputGraph = OSM { nodes :: [Vertex], ways :: [Way] }
 
 
-data AdjacencyList = Map Vertex [Vertex] -- have to build this
+type AdjacencyList = Map Vertex [Vertex] -- have to build this
 
 
 

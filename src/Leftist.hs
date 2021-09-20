@@ -15,7 +15,7 @@ module Leftist
 where
   
 import Control.Monad
-import Data.List hiding (insert)
+import Data.List hiding (insert, singleton)
 import Test.QuickCheck hiding (elements)
 
 data Heap a = Heap { val :: a
@@ -51,7 +51,7 @@ insert a heap = merge (singleton a) heap
 
 deletemin :: Ord a => Heap a -> Maybe (a, Heap a)
 deletemin Empty = Nothing
-deletemin (h @ Heap { }) = Just (val h, merge (left h) (right h))
+deletemin (h@Heap { }) = Just (val h, merge (left h) (right h))
 
 merge :: Ord a => Heap a -> Heap a -> Heap a
 merge Empty h = h
@@ -110,7 +110,7 @@ sortWorks ns = heapsort ns == sort ns
 instance (Ord a, Arbitrary a) => Arbitrary (Heap a) where
   arbitrary = liftM (foldr insert Empty)
                  (sized $ \n -> sequence (replicate n arbitrary))
-  coarbitrary = error "never"
+--  coarbitrary = error "never"
 
 ------------------------------
 
